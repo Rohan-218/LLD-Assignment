@@ -1,22 +1,36 @@
-const expres = require("express");
-const cookieParser = require("cookie-parser");
+import express from "express";
+import cors from "cors";
 
-const app = expres();
+import problemRoutes from "./routes/problemRoutes.js";
 
-app.use(expres.json());
-app.use(cookieParser());
+import attemptRoutes from "./routes/attemptRoutes.js";
+
+const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  }),
+);
+
+app.use(express.json());
 
 app.get("/", (req, res) => {
-    res.status(200).json({
-        message: "Welcome to the Backend",
-        status: "success"
-    });
+  res.json({
+    message: "LLD Practice Platform API",
+    status: success
+  });
 });
 
-/**
- * - API routes
- * - /api/
- */
+app.use("/api/problems", problemRoutes);
 
+app.use("/api", attemptRoutes);
 
-module.exports = app;
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+export default app;
