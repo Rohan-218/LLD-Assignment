@@ -1,25 +1,37 @@
-# Build Frontend [dist folder]
-# Copy the dist folder to the Backend/public folder
+# =========================
+# 1. Build Frontend
+# =========================
 
-FROM node:22-alpine as frontend-builder
-
-COPY ./Frontend /app
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 
+COPY ./frontend/package*.json ./
+
 RUN npm install
+
+COPY ./frontend ./
 
 RUN npm run build
 
-# Build Backend
-FROM node:22-alpine
 
-COPY ./Backend /app
+# =========================
+# 2. Build Backend
+# =========================
+
+FROM node:22-alpine
 
 WORKDIR /app
 
+COPY ./backend/package*.json ./
+
 RUN npm install
 
-COPY --from=frontend-builder /app/dist /app/public
+COPY ./backend ./
 
-CMD ["node", "server.js"]
+# Copy React production build
+COPY --from=frontend-builder /app/dist ./public
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
