@@ -1,37 +1,54 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import ProblemCard from "../components/ProblemCard";
+import { getProblems } from "../services/api";
 
 const Problems = () => {
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const problems = [
-    {
-      id: 1,
-      title: "ATM System Design",
-      description: "Design an ATM system that supports card insertion, PIN validation, balance inquiry, withdrawal and deposit.",
-      difficulty: "Medium",
-    },
-  ];
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const response = await getProblems();
+        setProblems(response.data.data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load problems. Check your backend.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProblems();
+  }, []);
+
+  if (loading) {
+    return <p className="page-message">Loading problems...</p>;
+  }
+
+  if (error) {
+    return <p className="error-message">{error}</p>;
+  }
 
   return (
-    <div className="page">
+    <main className="page-container">
+      <h1>LLD Practice Problems</h1>
 
-      <div className="page-header">
-        <h1>LLD Practice Problems</h1>
+      <p className="page-description">
+        Choose a problem, design your solution, and receive structured feedback.
+      </p>
 
-        <p>
-          Practice object-oriented design by creating your own solution before receiving feedback.
-        </p>
-      </div>
-
-      <div className="problem-grid">
-
-        {problems.map((problem) => (
-          <ProblemCard key={problem.id} problem={problem} />
-        ))}
-
-      </div>
-
-    </div>
+      {problems.length === 0 ? (
+        <p>No problems are available yet.</p>
+      ) : (
+        <div className="problem-grid">
+          {problems.map((problem) => (
+            <ProblemCard key={problem._id} problem={problem} />
+          ))}
+        </div>
+      )}
+    </main>
   );
 };
 

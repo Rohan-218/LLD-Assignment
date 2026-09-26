@@ -1,134 +1,72 @@
-import React from "react";
-
-const RelationshipEditor = ({relationships, setRelationships}) => {
+const RelationshipEditor = ({ relationships, setRelationships }) => {
+  const updateRelationship = (index, field, value) => {
+    setRelationships((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
 
   const addRelationship = () => {
-    setRelationships([
-      ...relationships,
-      {
-        id: Date.now(),
-        from: "",
-        to: "",
-        type: "association",
-      },
+    setRelationships((current) => [
+      ...current,
+      { from: "", to: "", type: "association" },
     ]);
   };
 
-  const updateRelationship = (id, field, value) => {
-    setRelationships(
-      relationships.map((item) =>
-        item.id === id
-          ? { ...item, [field]: value }
-          : item
-      )
-    );
-  };
-
-  const removeRelationship = (id) => {
-    setRelationships(
-      relationships.filter(
-        (item) => item.id !== id
-      )
-    );
+  const removeRelationship = (index) => {
+    setRelationships((current) => current.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="editor-section">
-
-      <div className="section-header">
-
-        <h2>Relationships</h2>
-
-        <button type="button" className="secondary-button" onClick={addRelationship}>
-          + Add Relationship
-        </button>
-
-      </div>
-
+    <div>
       {relationships.map((item, index) => (
-        <div
-          className="editor-card"
-          key={item.id}
-        >
+        <div className="editor-card" key={index}>
+          <label>From class</label>
+          <input
+            value={item.from}
+            onChange={(e) => updateRelationship(index, "from", e.target.value)}
+            placeholder="e.g. ATM"
+          />
 
-          <h3>Relationship {index + 1}</h3>
+          <label>To class</label>
+          <input
+            value={item.to}
+            onChange={(e) => updateRelationship(index, "to", e.target.value)}
+            placeholder="e.g. Account"
+          />
 
-          <div className="form-row">
+          <label>Relationship type</label>
+          <select
+            value={item.type}
+            onChange={(e) => updateRelationship(index, "type", e.target.value)}
+          >
+            <option value="association">Association</option>
+            <option value="inheritance">Inheritance</option>
+            <option value="composition">Composition</option>
+            <option value="aggregation">Aggregation</option>
+            <option value="dependency">Dependency</option>
+          </select>
 
-            <div>
-              <label>From</label>
-
-              <input
-                type="text"
-                placeholder="ATM"
-                value={item.from}
-                onChange={(e) =>
-                  updateRelationship(
-                    item.id,
-                    "from",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div>
-              <label>Relationship</label>
-
-              <select
-                value={item.type}
-                onChange={(e) =>
-                  updateRelationship(
-                    item.id,
-                    "type",
-                    e.target.value
-                  )
-                }
-              >
-                <option value="association">
-                  Association
-                </option>
-
-                <option value="aggregation">
-                  Aggregation
-                </option>
-
-                <option value="composition">
-                  Composition
-                </option>
-
-                <option value="inheritance">
-                  Inheritance
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label>To</label>
-
-              <input
-                type="text"
-                placeholder="Account"
-                value={item.to}
-                onChange={(e) =>
-                  updateRelationship(
-                    item.id,
-                    "to",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-          </div>
-
-          <button type="button" className="delete-button" onClick={() => removeRelationship(item.id)}>
-            Remove
-          </button>
-
+          {relationships.length > 1 && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => removeRelationship(index)}
+            >
+              Remove Relationship
+            </button>
+          )}
         </div>
       ))}
 
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={addRelationship}
+      >
+        + Add Relationship
+      </button>
     </div>
   );
 };

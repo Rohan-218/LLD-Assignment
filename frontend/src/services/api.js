@@ -1,61 +1,44 @@
-const API_URL = "http://localhost:5000/api";
+import axios from "axios";
 
-export const getProblems = async () => {
-  const response = await fetch(`${API_URL}/problems`);
+const API_URL = "http://localhost:3000/api";
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch problems");
-  }
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  return response.json();
+// Get all available LLD problems
+export const getProblems = () => {
+  return api.get("/problems");
 };
 
-export const getProblem = async (id) => {
-  const response = await fetch(`${API_URL}/problems/${id}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch problem");
-  }
-
-  return response.json();
+// Get details of one problem
+export const getProblem = (problemId) => {
+  return api.get(`/problems/${problemId}`);
 };
 
-export const submitAttempt = async (problemId, design) => {
-  const response = await fetch(`${API_URL}/problems/${problemId}/attempts`, {
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-
-    body: JSON.stringify({
-      design,
-    }),
+// Submit a learner's design
+export const submitAttempt = (problemId, design) => {
+  return api.post(`/problems/${problemId}/attempts`, {
+    design,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to submit attempt");
-  }
-
-  return response.json();
 };
 
-export const getFeedback = async (attemptId) => {
-  const response = await fetch(`${API_URL}/attempts/${attemptId}/feedback`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch feedback");
-  }
-
-  return response.json();
+// Get one attempt
+export const getAttempt = (attemptId) => {
+  return api.get(`/attempts/${attemptId}`);
 };
 
-export const getHistory = async () => {
-  const response = await fetch(`${API_URL}/attempts`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch history");
-  }
-
-  return response.json();
+// Get evaluation feedback for an attempt
+export const getFeedback = (attemptId) => {
+  return api.get(`/attempts/${attemptId}/feedback`);
 };
+
+// Get all previous attempts
+export const getHistory = () => {
+  return api.get("/attempts");
+};
+
+export default api;

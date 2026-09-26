@@ -1,93 +1,54 @@
-import React from "react";
-
-const DecisionEditor = ({ decisions, setDecisions}) => {
+const DecisionEditor = ({ decisions, setDecisions }) => {
+  const updateDecision = (index, field, value) => {
+    setDecisions((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
 
   const addDecision = () => {
-    setDecisions([
-      ...decisions,
-      {
-        id: Date.now(),
-        decision: "",
-        reason: "",
-      },
-    ]);
+    setDecisions((current) => [...current, { decision: "", reason: "" }]);
   };
 
-  const updateDecision = (id, field, value) => {
-    setDecisions(
-      decisions.map((item) =>
-        item.id === id
-          ? { ...item, [field]: value }
-          : item
-      )
-    );
-  };
-
-  const removeDecision = (id) => {
-    setDecisions(
-      decisions.filter(
-        (item) => item.id !== id
-      )
-    );
+  const removeDecision = (index) => {
+    setDecisions((current) => current.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="editor-section">
-
-      <div className="section-header">
-
-        <h2>Design Decisions</h2>
-
-        <button type="button" className="secondary-button" onClick={addDecision}>
-          + Add Decision
-        </button>
-
-      </div>
-
+    <div>
       {decisions.map((item, index) => (
-        <div
-          className="editor-card"
-          key={item.id}
-        >
-
-          <h3>Decision {index + 1}</h3>
-
-          <label>Decision</label>
-
+        <div className="editor-card" key={index}>
+          <label>Design decision</label>
           <input
-            type="text"
-            placeholder="e.g. Use Transaction as an abstract concept"
             value={item.decision}
-            onChange={(e) =>
-              updateDecision(
-                item.id,
-                "decision",
-                e.target.value
-              )
-            }
+            onChange={(e) => updateDecision(index, "decision", e.target.value)}
+            placeholder="e.g. Separate transaction types"
           />
 
           <label>Reason</label>
-
           <textarea
-            placeholder="Why did you make this decision?"
             value={item.reason}
-            onChange={(e) =>
-              updateDecision(
-                item.id,
-                "reason",
-                e.target.value
-              )
-            }
+            onChange={(e) => updateDecision(index, "reason", e.target.value)}
+            placeholder="Why did you make this choice?"
+            rows={3}
           />
 
-          <button type="button" className="delete-button" onClick={() => removeDecision(item.id)}>
-            Remove
-          </button>
-
+          {decisions.length > 1 && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => removeDecision(index)}
+            >
+              Remove Decision
+            </button>
+          )}
         </div>
       ))}
 
+      <button type="button" className="secondary-button" onClick={addDecision}>
+        + Add Decision
+      </button>
     </div>
   );
 };

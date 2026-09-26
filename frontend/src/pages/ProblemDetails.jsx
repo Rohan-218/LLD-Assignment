@@ -1,71 +1,67 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { getProblem } from "../services/api";
 
 const ProblemDetails = () => {
+  const { problemId } = useParams();
+
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProblem = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await getProblem(problemId);
+        setProblem(response.data.data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load this problem.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProblem();
+  }, [problemId]);
+
+  if (loading) {
+    return <p className="page-message">Loading problem...</p>;
+  }
+
+  if (error) {
+    return <p className="error-message">{error}</p>;
+  }
+
+  if (!problem) {
+    return <p>Problem not found.</p>;
+  }
+
   return (
-    <div className="page">
+    <main className="page-container">
+      <span className="difficulty">{problem.difficulty}</span>
 
-      <div className="problem-details">
+      <h1>{problem.title}</h1>
 
-        <span className="difficulty">
-          Medium
-        </span>
+      <p className="page-description">{problem.description}</p>
 
-        <h1>ATM System Design</h1>
-
-        <p className="description">
-          Design an ATM system that allows users to perform
-          common banking operations.
-        </p>
-
+      <section className="content-section">
         <h2>Requirements</h2>
 
-        <ul className="requirements">
-
-          <li>
-            The user should be able to insert a card.
-          </li>
-
-          <li>
-            The system should validate the PIN.
-          </li>
-
-          <li>
-            The user should be able to check their balance.
-          </li>
-
-          <li>
-            The user should be able to withdraw money.
-          </li>
-
-          <li>
-            The user should be able to deposit money.
-          </li>
-
-          <li>
-            The system should handle insufficient account balance.
-          </li>
-
-          <li>
-            The ATM should handle insufficient cash.
-          </li>
-
+        <ul className="requirements-list">
+          {problem.requirements?.map((requirement, index) => (
+            <li key={index}>{requirement}</li>
+          ))}
         </ul>
+      </section>
 
-        <h2>What you need to design</h2>
-
-        <p>
-          Identify the important classes, their responsibilities,
-          relationships and important design decisions.
-        </p>
-
-        <Link to="/problems/1/design" className="button">
-          Start Designing
-        </Link>
-
-      </div>
-
-    </div>
+      <Link to={`/problems/${problem._id}/design`} className="primary-button">
+        Start Designing
+      </Link>
+    </main>
   );
 };
 

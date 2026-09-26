@@ -1,47 +1,56 @@
-import React from "react";
-import { Link } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import FeedbackCard from "../components/FeedbackCard";
+import { getFeedback } from "../services/api";
 
 const Feedback = () => {
+  const { attemptId } = useParams();
 
-  const feedback = {
-    strengths: [
-      "ATM responsibility is separated from Account responsibility.",
-      "The design identifies Account as an important domain object.",
-    ],
+  const [feedback, setFeedback] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    issues: [
-      "Cash handling responsibility is not clearly separated.",
-      "PIN validation responsibility should be isolated.",
-    ],
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const response = await getFeedback(attemptId);
+        setFeedback(response.data.data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load feedback for this attempt.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    suggestions: [
-      "Consider introducing a CashDispenser component.",
-      "Consider separating transaction-specific behavior.",
-    ],
+    fetchFeedback();
+  }, [attemptId]);
 
-    tradeoffs: [
-      "A separate transaction abstraction can make it easier to add new transaction types.",
-      "More classes may increase complexity for a small system.",
-    ],
-  };
+  if (loading) {
+    return <p className="page-message">Evaluating your design...</p>;
+  }
+
+  if (error) {
+    return <p className="error-message">{error}</p>;
+  }
+
+  if (!feedback) {
+    return <p>No feedback found.</p>;
+  }
+
+  // Get the problem ID from the feedback response
+  const problemId = feedback.attempt?.problem?._id || feedback.problem?._id;
 
   return (
-    <div className="page">
+    <main className="page-container">
+      <h1>Design Feedback</h1>
 
-      <div className="feedback-header">
-
-        <h1>Design Feedback</h1>
-
-        <p>
-          Review the feedback on your ATM system design.
-        </p>
-
-      </div>
+      <p className="page-description">
+        Review the strengths, issues, suggestions, and trade-offs identified in
+        your design.
+      </p>
 
       <div className="feedback-grid">
-
         <FeedbackCard title="Strengths" items={feedback.strengths} />
 
         <FeedbackCard title="Issues" items={feedback.issues} />
@@ -49,22 +58,23 @@ const Feedback = () => {
         <FeedbackCard title="Suggestions" items={feedback.suggestions} />
 
         <FeedbackCard title="Trade-offs" items={feedback.tradeoffs} />
-
       </div>
 
-      <div className="feedback-actions">
+      <div className="action-row">
+        {problemId && (
+          <Link
+            to={`/problems/${problemId}/design`}
+            className="secondary-button"
+          >
+            Retry Design
+          </Link>
+        )}
 
-        <Link to="/problems/1/design" className="button">
-          Retry Design
-        </Link>
-
-        <Link to="/history" className="secondary-button">
+        <Link to="/history" className="button">
           View History
         </Link>
-
       </div>
-
-    </div>
+    </main>
   );
 };
 

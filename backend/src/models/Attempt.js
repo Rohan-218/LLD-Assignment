@@ -7,8 +7,8 @@ const classSchema = new mongoose.Schema({
         required: true
     },
     responsibilities: {
-        type: String,
-        default: ""
+        type: [String],
+        default: []
     }
 },{
     _id: false

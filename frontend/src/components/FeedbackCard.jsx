@@ -1,27 +1,18 @@
-import React from "react";
-
-const FeedbackCard = ({
-  title,
-  items,
-}) => {
+const FeedbackCard = ({ title, items, className = "" }) => {
   return (
-    <div className="feedback-card">
-
+    <section className={`feedback-card ${className}`}>
       <h2>{title}</h2>
 
-      {items.length === 0 ? (
-        <p>No feedback available.</p>
-      ) : (
+      {items?.length ? (
         <ul>
           {items.map((item, index) => (
-            <li key={index}>
-              {item}
-            </li>
+            <li key={index}>{item}</li>
           ))}
         </ul>
+      ) : (
+        <p>No items in this category.</p>
       )}
-
-    </div>
+    </section>
   );
 };
 

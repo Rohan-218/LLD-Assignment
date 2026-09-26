@@ -1,65 +1,143 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ClassEditor from "../components/ClassEditor";
 import RelationshipEditor from "../components/RelationshipEditor";
 import DecisionEditor from "../components/DecisionEditor";
+import { getProblem, submitAttempt } from "../services/api";
 
 const DesignAttempt = () => {
-
+  const { problemId } = useParams();
   const navigate = useNavigate();
 
-  const [classes, setClasses] = useState([]);
-  const [relationships, setRelationships] = useState([]);
-  const [decisions, setDecisions] = useState([]);
+  const [problem, setProblem] = useState(null);
+  const [classes, setClasses] = useState([{ name: "", responsibilities: "" }]);
+  const [relationships, setRelationships] = useState([
+    { from: "", to: "", type: "association" },
+  ]);
+  const [decisions, setDecisions] = useState([{ decision: "", reason: "" }]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-    const design = {
-      classes,
-      relationships,
-      decisions,
+  useEffect(() => {
+    const fetchProblem = async () => {
+      try {
+        const response = await getProblem(problemId);
+        setProblem(response.data.data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load the problem.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    console.log("Submitted Design:", design);
+    fetchProblem();
+  }, [problemId]);
 
-    navigate("/attempts/1/feedback");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+
+    const design = {
+      classes: classes
+        .filter((item) => item.name.trim())
+        .map((item) => ({
+          name: item.name.trim(),
+          responsibilities: item.responsibilities
+            .split("\n")
+            .map((responsibility) => responsibility.trim())
+            .filter(Boolean),
+        })),
+
+      relationships: relationships.filter(
+        (item) => item.from.trim() && item.to.trim(),
+      ),
+
+      decisions: decisions.filter((item) => item.decision.trim()),
+    };
+
+    if (design.classes.length === 0) {
+      setError("Add at least one class before submitting.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const response = await submitAttempt(problemId, design);
+      const attempt = response.data.data;
+
+      navigate(`/attempts/${attempt._id}/feedback`);
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err.response?.data?.message ||
+          "Unable to submit your design. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  if (loading) {
+    return <p className="page-message">Loading...</p>;
+  }
+
+  if (!problem) {
+    return <p className="error-message">{error || "Problem not found."}</p>;
+  }
+
   return (
-    <div className="page">
+    <main className="page-container">
+      <Link to={`/problems/${problemId}`} className="back-link">
+        ← Back to problem
+      </Link>
 
-      <div className="design-header">
+      <h1>Design: {problem.title}</h1>
 
-        <h1>ATM System Design</h1>
-
-        <p>
-          Create your own design based on the given
-          requirements.
-        </p>
-
-      </div>
+      <p className="page-description">
+        Describe your design before viewing the feedback.
+      </p>
 
       <form onSubmit={handleSubmit}>
+        <section className="content-section">
+          <h2>Classes</h2>
+          <p>
+            Add the classes in your design and describe each class's
+            responsibilities.
+          </p>
 
-        <ClassEditor classes={classes} setClasses={setClasses} />
+          <ClassEditor classes={classes} setClasses={setClasses} />
+        </section>
 
-        <RelationshipEditor relationships={relationships} setRelationships={setRelationships} />
+        <section className="content-section">
+          <h2>Relationships</h2>
+          <p>Describe how your classes interact with one another.</p>
 
-        <DecisionEditor decisions={decisions} setDecisions={setDecisions} />
+          <RelationshipEditor
+            relationships={relationships}
+            setRelationships={setRelationships}
+          />
+        </section>
 
-        <div className="submit-container">
+        <section className="content-section">
+          <h2>Design Decisions</h2>
+          <p>Explain important design choices and why you made them.</p>
 
-          <button type="submit" className="submit-button">
-            Submit Design
-          </button>
+          <DecisionEditor decisions={decisions} setDecisions={setDecisions} />
+        </section>
 
-        </div>
+        {error && <p className="error-message">{error}</p>}
 
+        <button type="submit" className="primary-button" disabled={submitting}>
+          {submitting ? "Submitting..." : "Submit Design"}
+        </button>
       </form>
-
-    </div>
+    </main>
   );
 };
 
